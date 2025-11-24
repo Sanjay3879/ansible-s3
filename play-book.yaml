@@ -3,6 +3,7 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  become: yes  # ensures tasks requiring root run properly
 
   vars:
     s3_bucket: "sanjay-3879"
@@ -11,24 +12,28 @@
 
   tasks:
 
-    - name: Install unzip and Python3
+    - name: Install required packages
       package:
         name:
           - unzip
           - python3
         state: present
 
-    - name: Download AWS CLI v2 zip
+    - name: Download AWS CLI v2 zip if not already present
       get_url:
         url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
         dest: /tmp/awscliv2.zip
         mode: '0644'
+      register: awscli_download
+      # This avoids re-downloading if the file already exists
+      changed_when: awscli_download.changed
 
     - name: Unzip AWS CLI installer
       unarchive:
         src: /tmp/awscliv2.zip
         dest: /tmp/
         remote_src: yes
+      when: awscli_download.changed
 
     - name: Install AWS CLI
       shell: "/tmp/aws/install"
@@ -56,11 +61,10 @@
         dest: "{{ download_path }}"
         mode: get
 
-    - name: Set ownership and permissions of downloaded S3 file
+    - name: Ensure ec2-user owns the S3 file
       file:
         path: "{{ download_path }}"
         owner: ec2-user
         group: ec2-user
         mode: '0644'
-
 
