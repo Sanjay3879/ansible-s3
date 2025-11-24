@@ -1,5 +1,5 @@
 ---
-- name: Install AWS CLI and pull file from S3
+- name: Install AWS CLI and download S3 file
   hosts: localhost
   connection: local
   gather_facts: false
@@ -11,9 +11,11 @@
 
   tasks:
 
-    - name: Install unzip package
+    - name: Install unzip and Python3
       package:
-        name: unzip
+        name:
+          - unzip
+          - python3
         state: present
 
     - name: Download AWS CLI v2 zip
@@ -33,16 +35,32 @@
       args:
         creates: /usr/local/bin/aws
 
-    - name: Create directory if not present
+    - name: Clean AWS CLI installer files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/awscliv2.zip
+        - /tmp/aws
+
+    - name: Ensure destination directory exists
       file:
         path: "/home/ec2-user"
         state: directory
         mode: '0755'
 
-    - name: Download S3 file (matches user_data exactly)
+    - name: Download S3 file
       amazon.aws.aws_s3:
         bucket: "{{ s3_bucket }}"
         object: "{{ s3_object }}"
         dest: "{{ download_path }}"
         mode: get
+
+    - name: Set ownership and permissions of downloaded S3 file
+      file:
+        path: "{{ download_path }}"
+        owner: ec2-user
+        group: ec2-user
+        mode: '0644'
+
 
