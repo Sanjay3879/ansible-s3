@@ -51,3 +51,16 @@
             ('{{ user.name }}','{{ user.contact }}','{{ user.address }}'){% if not loop.last %},{% endif %}
           {% endfor %};
 
+    - name: Verify inserted data
+      community.mysql.mysql_query:
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+        login_host: "{{ rds_endpoint }}"
+        query: "SELECT * FROM {{ db_name }}.{{ db_table }};"
+      register: query_result
+
+    - name: Show data from table
+      ansible.builtin.debug:
+        var: query_result.query_result
+
+
