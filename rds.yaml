@@ -3,7 +3,7 @@
   hosts: localhost
   connection: local
   gather_facts: false
-
+  become: true 
   vars:
     db_name: Mini_Project
     db_table: testdata
