@@ -1,79 +1,46 @@
 ---
-- name: Configure RDS MySQL Database
-  hosts: local
-  connection: local
+- name: Configure MySQL Database on RDS
+  hosts: localhost   # run locally, Ansible will connect to RDS
+  gather_facts: false
   vars:
-    db_name: Mini_Project
-    table_name: testdata
-    sample_data:
-      - Name: sanjay
-        Contact: "1234567890"
-        Address: Dublin
-      - Name: ajay
-        Contact: "9876543210"
-        Address: London
-      - Name: harsha
-        Contact: "5555555555"
-        Address: Paris
+    db_host: "your-rds-endpoint.amazonaws.com"
+    db_port: 3306
+    db_root_user: "admin"
+    db_root_password: "YourRDSMasterPassword"
+    db_name: "Mini_Project"
+    table_name: "testdata"
+
   tasks:
 
-    - name: Install MySQL client if not present
-      package:
-        name: mysql
-        state: present
-
-    - name: Ensure Python MySQL module is installed
-      pip:
-        name: PyMySQL
-        state: present
-
-    - name: Create Database
+    - name: Create database
       community.mysql.mysql_db:
         name: "{{ db_name }}"
         state: present
-        login_user: "{{ db_user }}"
-        login_password: "{{ db_password }}"
-        login_host: "{{ rds_endpoint }}"
+        login_host: "{{ db_host }}"
+        login_user: "{{ db_root_user }}"
+        login_password: "{{ db_root_password }}"
 
-    - name: Create Table
-      community.mysql.mysql_table:
-        name: "{{ table_name }}"
-        db: "{{ db_name }}"
-        state: present
-        login_user: "{{ db_user }}"
-        login_password: "{{ db_password }}"
-        login_host: "{{ rds_endpoint }}"
-        columns:
-          - name: Name
-            type: VARCHAR(50)
-          - name: Contact
-            type: VARCHAR(20)
-          - name: Address
-            type: VARCHAR(50)
-
-    - name: Insert Sample Data
+    - name: Create table inside database
       community.mysql.mysql_query:
-        login_user: "{{ db_user }}"
-        login_password: "{{ db_password }}"
-        login_host: "{{ rds_endpoint }}"
+        login_host: "{{ db_host }}"
+        login_user: "{{ db_root_user }}"
+        login_password: "{{ db_root_password }}"
         db: "{{ db_name }}"
-        query: >
-          INSERT INTO {{ table_name }} (Name, Contact, Address)
-          VALUES
-          {% for row in sample_data %}
-            ('{{ row.Name }}', '{{ row.Contact }}', '{{ row.Address }}'){% if not loop.last %},{% endif %}
-          {% endfor %};
+        sql: |
+          CREATE TABLE IF NOT EXISTS {{ table_name }} (
+            Name VARCHAR(50),
+            Contact VARCHAR(15),
+            Address VARCHAR(100)
+          );
 
-    - name: Verify inserted data
+    - name: Insert sample data
       community.mysql.mysql_query:
-        login_user: "{{ db_user }}"
-        login_password: "{{ db_password }}"
-        login_host: "{{ rds_endpoint }}"
+        login_host: "{{ db_host }}"
+        login_user: "{{ db_root_user }}"
+        login_password: "{{ db_root_password }}"
         db: "{{ db_name }}"
-        query: "SELECT * FROM {{ table_name }};"
-      register: query_result
-
-    - name: Show data from table
-      debug:
-        var: query_result.query_result
-
+        sql: |
+          INSERT INTO {{ table_name }} (Name, Contact, Address) VALUES
+          ('sanjay', '1234567890', 'Dublin'),
+          ('alice', '2345678901', 'London'),
+          ('bob', '3456789012', 'New York');
