@@ -3,18 +3,17 @@
   hosts: localhost
   gather_facts: false
   vars:
-    db_name: "Mini_Project"
-    table_name: "testdata"
+    db_name: Mini_Project
+    table_name: testdata
 
   tasks:
     - name: Ensure MySQL database exists
       community.mysql.mysql_db:
-        name: "{{ db_name }}"
-        state: present
         login_host: "{{ db_host }}"
         login_user: "{{ db_root_user }}"
         login_password: "{{ db_root_password }}"
-        login_port: 3306
+        name: "{{ db_name }}"
+        state: present
 
     - name: Create table if it doesn't exist
       community.mysql.mysql_query:
@@ -22,12 +21,7 @@
         login_user: "{{ db_root_user }}"
         login_password: "{{ db_root_password }}"
         db: "{{ db_name }}"
-        sql: |
-          CREATE TABLE IF NOT EXISTS {{ table_name }} (
-            Name VARCHAR(50),
-            Contact VARCHAR(15),
-            Address VARCHAR(100)
-          );
+        query: "CREATE TABLE IF NOT EXISTS {{ table_name }} (Name VARCHAR(50), Contact VARCHAR(15), Address VARCHAR(100));"
 
     - name: Insert sample data
       community.mysql.mysql_query:
@@ -35,8 +29,9 @@
         login_user: "{{ db_root_user }}"
         login_password: "{{ db_root_password }}"
         db: "{{ db_name }}"
-        sql: |
+        query: |
           INSERT INTO {{ table_name }} (Name, Contact, Address) VALUES
           ('sanjay', '1234567890', 'Dublin'),
           ('alice', '2345678901', 'London'),
-          ('bob', '3456789012', 'New York');
+          ('bob', '3456789012', 'New York')
+          ON DUPLICATE KEY UPDATE Name=VALUES(Name);
