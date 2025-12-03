@@ -3,23 +3,20 @@
   hosts: localhost
   gather_facts: false
   vars:
-    db_host: "sanjay-mysql-db.cxwu4geyadbs.eu-west-1.rds.amazonaws.com"
-    db_port: 3306
-    db_root_user: "dbadmin"
-    db_root_password: "YourRDSPassword"
     db_name: "Mini_Project"
     table_name: "testdata"
 
   tasks:
-    - name: Create database
+    - name: Ensure MySQL database exists
       community.mysql.mysql_db:
         name: "{{ db_name }}"
         state: present
         login_host: "{{ db_host }}"
         login_user: "{{ db_root_user }}"
         login_password: "{{ db_root_password }}"
+        login_port: 3306
 
-    - name: Create table inside database
+    - name: Create table if it doesn't exist
       community.mysql.mysql_query:
         login_host: "{{ db_host }}"
         login_user: "{{ db_root_user }}"
