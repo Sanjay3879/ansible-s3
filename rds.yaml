@@ -1,17 +1,16 @@
 ---
 - name: Configure MySQL Database on RDS
-  hosts: localhost   # run locally, Ansible will connect to RDS
+  hosts: localhost
   gather_facts: false
   vars:
-    db_host: "your-rds-endpoint.amazonaws.com"
+    db_host: "sanjay-mysql-db.cxwu4geyadbs.eu-west-1.rds.amazonaws.com"
     db_port: 3306
-    db_root_user: "admin"
-    db_root_password: "YourRDSMasterPassword"
+    db_root_user: "dbadmin"
+    db_root_password: "YourRDSPassword"
     db_name: "Mini_Project"
     table_name: "testdata"
 
   tasks:
-
     - name: Create database
       community.mysql.mysql_db:
         name: "{{ db_name }}"
