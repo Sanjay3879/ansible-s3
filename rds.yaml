@@ -20,7 +20,7 @@
         login_host: "{{ db_host }}"
         login_user: "{{ db_root_user }}"
         login_password: "{{ db_root_password }}"
-        db: "{{ db_name }}"
+        login_db: "{{ db_name }}"
         query: "CREATE TABLE IF NOT EXISTS testdata (Name VARCHAR(50), Contact VARCHAR(15), Address VARCHAR(100));"
 
     - name: Insert sample data
@@ -28,7 +28,7 @@
         login_host: "{{ db_host }}"
         login_user: "{{ db_root_user }}"
         login_password: "{{ db_root_password }}"
-        db: "{{ db_name }}"
+        login_db: "{{ db_name }}"
         query: |
           INSERT INTO {{ table_name }} (Name, Contact, Address) VALUES
           ('sanjay', '1234567890', 'Dublin'),
